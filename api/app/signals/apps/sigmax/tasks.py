@@ -30,8 +30,9 @@ def push_to_sigmax(pk):
         return None
 
     if is_signal_applicable(signal):
+        # Send the Signal (melding) to Sigmax.
         try:
-            success_message = outgoing.handle(signal)
+            success_message = outgoing.handle_send_signal(signal)
         except outgoing.SigmaxException:
             Signal.actions.update_status({
                 'state': workflow.VERZENDEN_MISLUKT,
@@ -43,3 +44,8 @@ def push_to_sigmax(pk):
                 'state': workflow.VERZONDEN,
                 'text': success_message,
             }, signal=signal)
+
+
+        sequence_number = outgoing._generate_sequence_number(signal)  # is string
+        send_signal(signal, sequence_number)
+        send_signal_pdf(signal, sequence_number)
