@@ -35,10 +35,10 @@ node {
   stage("Build dockers") {
       tryStep "build", {
           docker.withRegistry("${docker_registry_host}",'docker_registry_auth') {
-            def api = docker.build("${SIGNALS_DOCKER_IMAGE_NAME}", "api")
+            def api = docker.build("${env.SIGNALS_DOCKER_IMAGE_NAME}", "api")
             api.push()
 
-            def importer = docker.build("${SIGNALS_IMPORTER_DOCKER_IMAGE_NAME}", "import")
+            def importer = docker.build("${env.SIGNALS_IMPORTER_DOCKER_IMAGE_NAME}", "import")
             importer.push()
           }
       }
@@ -51,7 +51,7 @@ node {
     stage('Push acceptance image') {
         tryStep "image tagging", {
           docker.withRegistry("${docker_registry_host}",'docker_registry_auth') {
-            def image = docker.image("${SIGNALS_DOCKER_IMAGE_NAME}")
+            def image = docker.image("${env.SIGNALS_DOCKER_IMAGE_NAME}")
             image.pull()
             image.push("acceptance")
           }
@@ -76,12 +76,12 @@ node {
     stage('Push production image') {
         tryStep "image tagging", {
           docker.withRegistry("${docker_registry_host}",'docker_registry_auth') {
-            def api = docker.image("${SIGNALS_DOCKER_IMAGE_NAME}")
+            def api = docker.image("${env.SIGNALS_DOCKER_IMAGE_NAME}")
             api.pull()
             api.push("production")
             api.push("latest")
 
-            def importer = docker.image("${SIGNALS_IMPORTER_DOCKER_IMAGE_NAME}")
+            def importer = docker.image("${env.SIGNALS_IMPORTER_DOCKER_IMAGE_NAME}")
             importer.pull()
             importer.push("production")
             importer.push("latest")
