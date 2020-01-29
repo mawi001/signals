@@ -1,8 +1,7 @@
 #!groovy
-
-environment {
-  SIGNALS_DOCKER_IMAGE_NAME           = "datapunt/signals:${env.BUILD_NUMBER}"
-  SIGNALS_IMPORTER_DOCKER_IMAGE_NAME  = "datapunt/signals_importer:${env.BUILD_NUMBER}"
+environment{
+  SIGNALS_DOCKER_IMAGE_NAME = "datapunt/signals:${env.BUILD_NUMBER}"
+  SIGNALS_IMPORTER_DOCKER_IMAGE_NAME = "datapunt/signals_importer:${env.BUILD_NUMBER}"
 }
 
 def tryStep(String message, Closure block, Closure tearDown = null) {
