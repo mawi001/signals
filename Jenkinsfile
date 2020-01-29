@@ -1,5 +1,10 @@
 #!groovy
 
+environment {
+  SIGNALS_DOCKER_IMAGE_NAME           = "datapunt/signals:${env.BUILD_NUMBER}"
+  SIGNALS_IMPORTER_DOCKER_IMAGE_NAME  = "datapunt/signals_importer:${env.BUILD_NUMBER}"
+}
+
 def tryStep(String message, Closure block, Closure tearDown = null) {
     try {
         block();
@@ -16,7 +21,6 @@ def tryStep(String message, Closure block, Closure tearDown = null) {
     }
 }
 
-
 node {
 
     stage("Checkout") {
@@ -31,14 +35,15 @@ node {
 
     stage("Build dockers") {
         tryStep "build", {
-            def api = docker.build("repo.data.amsterdam.nl/datapunt/signals:${env.BUILD_NUMBER}", "api")
-            api.push()
+            docker.withRegistry("${docker_registry_host}",'docker_registry_auth') {
+              def api = docker.build("${SIGNALS_DOCKER_IMAGE_NAME}", "api")
+              api.push()
 
-            def importer = docker.build("repo.data.amsterdam.nl/datapunt/signals_importer:${env.BUILD_NUMBER}", "import")
-            importer.push()
+              def importer = docker.build("${SIGNALS_IMPORTER_DOCKER_IMAGE_NAME}", "import")
+              importer.push()
+            }
         }
     }
-}
 
 String BRANCH = "${env.BRANCH_NAME}"
 
@@ -47,9 +52,11 @@ if (BRANCH == "master") {
     node {
         stage('Push acceptance image') {
             tryStep "image tagging", {
-                def image = docker.image("repo.data.amsterdam.nl/datapunt/signals:${env.BUILD_NUMBER}")
+              docker.withRegistry("${docker_registry_host}",'docker_registry_auth') {
+                def image = docker.image("${SIGNALS_DOCKER_IMAGE_NAME}")
                 image.pull()
                 image.push("acceptance")
+              }
             }
         }
     }
@@ -75,15 +82,17 @@ if (BRANCH == "master") {
     node {
         stage('Push production image') {
             tryStep "image tagging", {
-                def api = docker.image("repo.data.amsterdam.nl/datapunt/signals:${env.BUILD_NUMBER}")
+              docker.withRegistry("${docker_registry_host}",'docker_registry_auth') {
+                def api = docker.image("${SIGNALS_DOCKER_IMAGE_NAME}")
                 api.pull()
                 api.push("production")
                 api.push("latest")
 
-                def importer = docker.image("repo.data.amsterdam.nl/datapunt/signals_importer:${env.BUILD_NUMBER}")
+                def importer = docker.image("${SIGNALS_IMPORTER_DOCKER_IMAGE_NAME}")
                 importer.pull()
                 importer.push("production")
                 importer.push("latest")
+              }
             }
         }
     }
